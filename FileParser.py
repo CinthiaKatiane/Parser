@@ -51,6 +51,30 @@ class Metric_NOC(ast.NodeVisitor):
             pass
         super(Metric_NOC, self).generic_visit(node)
 '''
+class Metric_LCOM(ast.NodeVisitor):
+
+    def __init__(self):
+        self.dict_lcom = {}
+        self.list_lcom = []
+        self.lcom = 0
+
+    def visit_ClassDef(self, node):
+        self.dict_lcom = {}
+        super(Metric_LCOM, self).generic_visit(node)
+
+    def visit_FunctionDef(self, node):
+        for m in self.dict_lcom.keys():
+            if (m is node.body):
+                pass
+            else:
+                pass
+        super(Metric_LCOM, self).generic_visit(node)
+
+    def visit_Attribute(self, node):
+        if (isinstance(node.ctx, ast.Store)):
+            self.dict_lcom[node.attr] = self.list_lcom
+        super(Metric_LCOM, self).generic_visit(node)
+        
 # -------------------------------------------------------------------------------------------- #
 class FunctionDefVisitor(ast.NodeVisitor):
     def __init__(self):
@@ -121,19 +145,23 @@ if __name__ == "__main__":
             else:
                 pass
     else :
-        input_path =  glob.glob('*/*.py')
+        input_path = glob.glob('./*.py')
 
-    for f in input_path:
-        for l in f:
-            print("\nProcessing file: " + l)
-            with open(l, "r") as input:
-
-                # reads the content of this file
+    if len(sys.argv) == 2 :
+        for f in input_path:
+            for l in f:
+                print("\nProcessing file: " + l)
+                with open(l, "r") as input:
+                    file_str  = input.read()
+                    root = ast.parse(file_str)
+                    visitor = Metric_LCOM()
+                    visitor.visit(root)
+                    #print visitor.dict_rfc
+    else: 
+        for file in input_path:
+            with open(file, "r") as input:
+                print("\nProcessing: " + file)
                 file_str  = input.read()
-                # parses the content of this file
                 root = ast.parse(file_str)
-                # visits the Abstract Syntax Tree
-                #visitor = Metric_RFC()
-                visitor = Metric_NOC()
+                visitor = Metric_LCOM()
                 visitor.visit(root)
-                #print visitor.dict_rfc
