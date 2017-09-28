@@ -3,6 +3,9 @@ import ast
 import os
 import glob
 
+# ------------------------------------------------------------------------------------------------- #
+# Classes auxiliares
+
 # Aux Function to get the name of a node
 class FunctionName():
     
@@ -13,6 +16,46 @@ class FunctionName():
             return node.func.attr
         else:
             raise NotImplementedError("Could not extract call-name from node: " + str(node))
+
+class BodyVisitor_LCOM(ast.NodeVisitor):
+
+    def __init__(self):
+        self.bla = []
+
+    def visit_Body(self, node):
+        super(BodyVisitor_LCOM, self).generic_visit(node)
+
+    def visit_Attribute(self,node):
+        if (isinstance(node.ctx, ast.Store)):
+            self.bla.append(node.attr)
+        super(BodyVisitor_LCOM, self).generic_visit(node)
+
+
+# ------------------------------------------------------------------------------------------------- #
+#Metrics
+#Function to get the LCOM Metric
+class Metric_LCOM(ast.NodeVisitor):
+
+    def __init__(self):
+        self.dict_lcom = {}
+        self.list_lcom = []
+        self.lcom = 0
+
+    def visit_ClassDef(self, node):
+        self.dict_lcom = {}
+        super(Metric_LCOM, self).generic_visit(node)
+
+    def visit_FunctionDef(self, node):
+        
+        vstr = BodyVisitor_LCOM()
+        vstr.visit_Body(node)
+        #inserir a os atributos que fazem parte da lista no dicionario 
+
+    def visit_Attribute(self, node):
+        if (isinstance(node.ctx, ast.Store)):
+            self.dict_lcom[node.attr] = self.list_lcom
+        super(Metric_LCOM, self).generic_visit(node)
+
 
 #Function to get the RFC Metric
 class Metric_RFC(ast.NodeVisitor):
@@ -33,49 +76,10 @@ class Metric_RFC(ast.NodeVisitor):
     def visit_Call(self,node):
         self.rfc = self.rfc + 1        
         super(Metric_RFC, self).generic_visit(node)
-'''
-#Function to get the NOC Metric
-class Metric_NOC(ast.NodeVisitor):
 
-    def __init__(self):
-        self.noc = 0 
-        self.list_noc = []
+# ------------------------------------------------------------------------------------------------- #
+#Classes iniciais
 
-    def visit_ClassDef(self, node):
-        self.noc = 0
-        self.list_noc = node.name
-        print self.list_noc
-        if (issubclass(node.__class__ , ast.Bases)):
-            print "subclass"
-        else: 
-            pass
-        super(Metric_NOC, self).generic_visit(node)
-'''
-class Metric_LCOM(ast.NodeVisitor):
-
-    def __init__(self):
-        self.dict_lcom = {}
-        self.list_lcom = []
-        self.lcom = 0
-
-    def visit_ClassDef(self, node):
-        self.dict_lcom = {}
-        super(Metric_LCOM, self).generic_visit(node)
-
-    def visit_FunctionDef(self, node):
-        for m in self.dict_lcom.keys():
-            if (m is node.body):
-                pass
-            else:
-                pass
-        super(Metric_LCOM, self).generic_visit(node)
-
-    def visit_Attribute(self, node):
-        if (isinstance(node.ctx, ast.Store)):
-            self.dict_lcom[node.attr] = self.list_lcom
-        super(Metric_LCOM, self).generic_visit(node)
-        
-# -------------------------------------------------------------------------------------------- #
 class FunctionDefVisitor(ast.NodeVisitor):
     def __init__(self):
         self.dictfun = {}
@@ -131,6 +135,10 @@ class MyCustomVisitor(ast.NodeVisitor):
         super(MyCustomVisitor, self).generic_visit(node)
         print("\tA total of {0} function calls were found in {1}.\n".format(visitor.counterFunction, node.name))
         print self.dictdef[node.name]     
+
+# ------------------------------------------------------------------------------------------------- #
+
+# Main
 
 if __name__ == "__main__":
 
